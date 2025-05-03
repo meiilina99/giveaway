@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giveaway Picker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        peach: '#FFD5C2',
+                        lavender: '#C3B1E1',
+                        mint: '#A2E3C4',
+                        coral: '#FF6B6B',
+                        sky: '#89CFF0',
+                        pink: '#FF9EB7',
+                        purple: '#B399D4',
+                        teal: '#5DC1B9',
+                        amber: '#FFBE0B',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f4f8;
+            background-image: radial-gradient(#C3B1E1 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .panel-left {
+            background: linear-gradient(135deg, #FFFFFF 0%, rgba(255, 214, 194, 0.8) 100%);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        
+        .panel-left:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.3);
+        }
+        
+        .panel-right {
+            background: linear-gradient(135deg, #FFFFFF 0%, rgba(195, 177, 225, 0.8) 100%);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(195, 177, 225, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        
+        .panel-right:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(195, 177, 225, 0.4);
+        }
+        
+        .panel-logs {
+            background: linear-gradient(135deg, #FFFFFF 0%, rgba(93, 193, 185, 0.1) 100%);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(93, 193, 185, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        
+        .panel-logs:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(93, 193, 185, 0.3);
+        }
+        
+        .text-area {
+            min-height: 200px;
+            transition: all 0.2s ease;
+            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .text-area:focus {
+            border-color: #C3B1E1;
+            box-shadow: 0 0 0 3px rgba(195, 177, 225, 0.3);
+        }
+        
+        .result-display {
+            min-height: 200px;
+            max-height: 400px;
+            transition: all 0.3s ease;
+            border-radius: 16px;
+            background-color: rgba(255, 255, 255, 0.6);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #C3B1E1 rgba(255, 255, 255, 0.3);
+        }
+        
+        .result-display::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .result-display::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        
+        .result-display::-webkit-scrollbar-thumb {
+            background-color: #C3B1E1;
+            border-radius: 10px;
+        }
+        
+        .saved-list {
+            transition: all 0.2s ease;
+            border-radius: 12px;
+        }
+        
+        .saved-list:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .spin-animation {
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .bounce-animation {
+            animation: bounce 0.5s ease infinite alternate;
+        }
+        
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-10px); }
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #FF6B6B;
+            opacity: 0;
+        }
+        
+        .winner-item {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 214, 194, 0.5) 100%);
+            border-left: 4px solid #FF6B6B;
+            margin: 8px 0;
+            word-break: break-word;
+            white-space: normal;
+        }
+        
+        .winners-container {
+            max-height: 300px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #C3B1E1 rgba(255, 255, 255, 0.3);
+        }
+        
+        .winners-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .winners-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        
+        .winners-container::-webkit-scrollbar-thumb {
+            background-color: #C3B1E1;
+            border-radius: 10px;
+        }
+        
+        .log-item {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(93, 193, 185, 0.1) 100%);
+            border-left: 4px solid #5DC1B9;
+            margin: 8px 0;
+            word-break: break-word;
+            white-space: normal;
+        }
+        
+        .logs-container {
+            max-height: 400px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #5DC1B9 rgba(255, 255, 255, 0.3);
+        }
+        
+        .logs-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .logs-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        
+        .logs-container::-webkit-scrollbar-thumb {
+            background-color: #5DC1B9;
+            border-radius: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .split-container {
+                flex-direction: column;
+            }
+            
+            .panel {
+                width: 100% !important;
+            }
+        }
+        
+        /* Cute floating animation */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes animate-bounce-in {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes animate-fade-out {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(20px); opacity: 0; }
+        }
+        
+        .animate-bounce-in {
+            animation: animate-bounce-in 0.3s ease-out forwards;
+        }
+        
+        .animate-fade-out {
+            animation: animate-fade-out 0.3s ease-in forwards;
+        }
+        
+        .tab-button {
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-button.active {
+            border-bottom-color: #5DC1B9;
+            color: #5DC1B9;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.95);
+            opacity: 0;
+            animation: modalFadeIn 0.3s ease-out forwards;
+        }
+        
+        @keyframes modalFadeIn {
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #FFFFFF 0%, rgba(255, 214, 194, 0.3) 100%);
+            border-radius: 16px 16px 0 0;
+        }
+        
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+        
+        .modal-title i {
+            margin-right: 10px;
+            color: #FF6B6B;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #888;
+            transition: all 0.2s;
+        }
+        
+        .modal-close:hover {
+            color: #FF6B6B;
+            transform: rotate(90deg);
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .modal-input:focus {
+            border-color: #C3B1E1;
+            box-shadow: 0 0 0 3px rgba(195, 177, 225, 0.3);
+            outline: none;
+        }
+        
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: linear-gradient(135deg, #FFFFFF 0%, rgba(195, 177, 225, 0.1) 100%);
+            border-radius: 0 0 16px 16px;
+        }
+        
+        .modal-btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #FF6B6B 0%, #B399D4 100%);
+            color: white;
+            border: none;
+        }
+        
+        .modal-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+        
+        .modal-btn-secondary {
+            background: white;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+        
+        .modal-btn-secondary:hover {
+            background: #f5f5f5;
+        }
+        
+        /* Confirmation modal */
+        .confirmation-modal .modal-header {
+            background: linear-gradient(135deg, #FFFFFF 0%, rgba(255, 107, 107, 0.1) 100%);
+        }
+        
+        .confirmation-modal .modal-title i {
+            color: #FF6B6B;
+        }
+        
+        .confirmation-modal .modal-body {
+            text-align: center;
+            padding: 30px 20px;
+        }
+        
+        .confirmation-icon {
+            font-size: 3rem;
+            color: #FF6B6B;
+            margin-bottom: 20px;
+        }
+        
+        .confirmation-text {
+            font-size: 1.1rem;
+            color: #555;
+            line-height: 1.5;
+        }
+        
+        /* Login button */
+        .login-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: linear-gradient(135deg, #5DC1B9 0%, #89CFF0 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(93, 193, 185, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(93, 193, 185, 0.4);
+        }
+        
+        .login-btn i {
+            margin-right: 8px;
+        }
+        
+        /* Login modal */
+        .login-modal .modal-header {
+            background: linear-gradient(135deg, #FFFFFF 0%, rgba(93, 193, 185, 0.3) 100%);
+        }
+        
+        .login-modal .modal-title i {
+            color: #5DC1B9;
+        }
+        
+        /* Disabled state */
+        .disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .disabled-input {
+            background-color: #f5f5f5 !important;
+            cursor: not-allowed;
+        }
+
+        .active-list {
+            background-color: rgba(179, 153, 212, 0.2);
+            border: 2px solid #B399D4;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <!-- Login Button -->
+    <button id="login-btn" class="login-btn">
+        <i class="fas fa-sign-in-alt"></i> Login
+    </button>
+    
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-coral to-purple mb-6 text-center">
+            🎉 Giveaway Picker Infinity A Guild 🎉
+        </h1>
+        
+        <div class="split-container flex flex-wrap md:flex-nowrap gap-8 mb-8">
+            <!-- Left Panel - Settings and Word List -->
+            <div class="panel-left w-full md:w-1/2 p-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-10 h-10 rounded-full bg-pink/20 flex items-center justify-center mr-3 floating">
+                        <i class="fas fa-users text-pink text-lg"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-700">Participants List</h2>
+                </div>
+                
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="text-sm font-medium text-gray-600 flex items-center">
+                            <i class="fas fa-pencil-alt mr-2 text-purple"></i> Enter names (one per line)
+                        </label>
+                        <span id="sum-count" class="text-sm font-bold bg-pink text-white px-3 py-1 rounded-full">
+                            Sum: <span class="count">0</span>
+                        </span>
+                    </div>
+                    <textarea 
+                        id="names-input" 
+                        class="text-area w-full p-4 border-2 border-purple/30 focus:border-purple/50 focus:outline-none disabled-input" 
+                        placeholder="✨ Add participants here ✨\nJohn Doe\nJane Smith\n..."
+                        disabled></textarea>
+                </div>
+                
+                <div class="flex justify-between mb-8">
+                    <button id="save-list-btn" class="bg-gradient-to-r from-pink to-purple hover:from-pink/90 hover:to-purple/90 text-white px-6 py-3 rounded-xl transition-all transform hover:scale-105 shadow-md flex items-center disabled">
+                        <i class="fas fa-save mr-2 bounce-animation"></i>Save List
+                    </button>
+                    <button id="clear-list-btn" class="text-gray-500 hover:text-coral px-6 py-3 rounded-xl transition-all hover:bg-peach/30 flex items-center disabled">
+                        <i class="fas fa-trash-alt mr-2"></i>Clear
+                    </button>
+                </div>
+                
+                <div class="mb-8">
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 rounded-full bg-purple/20 flex items-center justify-center mr-3">
+                        <i class="fas fa-bookmark text-purple text-sm"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-700">Saved Lists</h3>
+                    </div>
+                    <div id="saved-lists-container" class="flex flex-wrap gap-3">
+                        <!-- Saved lists will appear here -->
+                    </div>
+                </div>
+                
+                <div class="settings-section bg-white/50 p-6 rounded-xl border-2 border-purple/20">
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 rounded-full bg-sky/20 flex items-center justify-center mr-3">
+                            <i class="fas fa-cog text-sky text-sm"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-700">Settings</h3>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="bg-white/70 p-4 rounded-lg border border-purple/30">
+                            <label class="block text-sm font-bold text-gray-600 mb-2 flex items-center">
+                                <i class="fas fa-trophy mr-2 text-coral"></i>Amount
+                            </label>
+                            <input 
+                                id="amount-input" 
+                                type="number" 
+                                min="1" 
+                                max="8"
+                                value="1" 
+                                class="w-full p-3 border-2 border-purple/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple/30 disabled-input"
+                                disabled>
+                        </div>
+                        
+                        <div class="bg-white/70 p-4 rounded-lg border border-purple/30">
+                            <label class="block text-sm font-bold text-gray-600 mb-2 flex items-center">
+                                <i class="fas fa-clock mr-2 text-sky"></i>Time (s)
+                            </label>
+                            <input 
+                                id="time-input" 
+                                type="number" 
+                                min="1" 
+                                max="10" 
+                                value="3" 
+                                class="w-full p-3 border-2 border-purple/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple/30 disabled-input"
+                                disabled>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 flex items-center">
+                        <input 
+                            id="auto-remove-checkbox" 
+                            type="checkbox" 
+                            checked
+                            class="w-5 h-5 text-purple rounded focus:ring-purple/50 disabled-input"
+                            disabled>
+                        <label for="auto-remove-checkbox" class="ml-2 text-sm font-medium text-gray-700">
+                            Auto-remove winners from saved lists
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Panel - Result Display -->
+            <div class="panel-right w-full md:w-1/2 p-8 flex flex-col">
+                <div class="flex items-center mb-6">
+                    <div class="w-10 h-10 rounded-full bg-purple/20 flex items-center justify-center mr-3 floating">
+                        <i class="fas fa-gift text-purple text-lg"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-700">Winner Selection</h2>
+                </div>
+                
+                <div class="flex-grow flex flex-col">
+                    <div id="result-display" class="result-display w-full flex flex-col items-center justify-center text-2xl font-medium text-gray-700 mb-4 p-4">
+                        <div class="text-center w-full">
+                            <i class="fas fa-gift text-4xl text-purple mb-4"></i>
+                            <p class="text-gray-600">Ready to pick a winner!</p>
+                        </div>
+                    </div>
+                    
+                    <div id="copy-section" class="hidden mb-4">
+                        <button id="copy-winners-btn" class="w-full bg-gradient-to-r from-sky to-purple hover:from-sky/90 hover:to-purple/90 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all transform hover:scale-[1.02] shadow-md flex items-center justify-center disabled">
+                            <i class="fas fa-copy mr-2"></i>Copy Winners List
+                        </button>
+                    </div>
+                    
+                    <button id="begin-btn" class="bg-gradient-to-r from-coral to-pink hover:from-coral/90 hover:to-pink/90 text-white px-10 py-4 rounded-xl text-lg font-bold transition-all transform hover:scale-105 shadow-lg shadow-coral/30 flex items-center justify-center mt-auto disabled">
+                        <i class="fas fa-play mr-3"></i>Begin Selection
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- New Logs Panel -->
+        <div class="panel-logs w-full p-8">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 rounded-full bg-teal/20 flex items-center justify-center mr-3 floating">
+                    <i class="fas fa-history text-teal text-lg"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-700">Event Logs</h2>
+            </div>
+            
+            <div class="flex border-b border-gray-200 mb-4">
+                <button class="tab-button px-4 py-2" data-tab="all-logs">
+                    <i class="fas fa-list mr-2"></i>All Logs
+                </button>
+                <button class="tab-button active px-4 py-2" data-tab="giveaway-logs">
+                    <i class="fas fa-gift mr-2"></i>Giveaways
+                </button>
+                <button class="tab-button px-4 py-2" data-tab="list-logs">
+                    <i class="fas fa-users mr-2"></i>Lists
+                </button>
+                <button class="tab-button px-4 py-2" data-tab="system-logs">
+                    <i class="fas fa-cog mr-2"></i>System
+                </button>
+            </div>
+            
+            <div class="tab-content" id="all-logs">
+                <div id="logs-container" class="logs-container">
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-history text-4xl mb-4 text-teal/50"></i>
+                        <p>No logs yet. Your giveaway events will appear here.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content active" id="giveaway-logs">
+                <div id="giveaway-logs-container" class="logs-container">
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-gift text-4xl mb-4 text-teal/50"></i>
+                        <p>No giveaway logs yet.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="list-logs">
+                <div id="list-logs-container" class="logs-container">
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-users text-4xl mb-4 text-teal/50"></i>
+                        <p>No list logs yet.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="system-logs">
+                <div id="system-logs-container" class="logs-container">
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-cog text-4xl mb-4 text-teal/50"></i>
+                        <p>No system logs yet.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-between mt-4">
+                <button id="clear-logs-btn" class="text-gray-500 hover:text-coral px-4 py-2 rounded-lg transition-all hover:bg-peach/30 flex items-center disabled">
+                    <i class="fas fa-trash-alt mr-2"></i>Clear Logs
+                </button>
+                <button id="export-logs-btn" class="bg-gradient-to-r from-teal to-sky hover:from-teal/90 hover:to-sky/90 text-white px-4 py-2 rounded-lg transition-all transform hover:scale-105 shadow-md flex items-center justify-center disabled">
+                    <i class="fas fa-download mr-2"></i>Export Logs
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const namesInput = document.getElementById('names-input');
+            const sumCount = document.getElementById('sum-count');
+            const saveListBtn = document.getElementById('save-list-btn');
+            const clearListBtn = document.getElementById('clear-list-btn');
+            const savedListsContainer = document.getElementById('saved-lists-container');
+            const amountInput = document.getElementById('amount-input');
+            const timeInput = document.getElementById('time-input');
+            const beginBtn = document.getElementById('begin-btn');
+            const resultDisplay = document.getElementById('result-display');
+            const copySection = document.getElementById('copy-section');
+            const copyWinnersBtn = document.getElementById('copy-winners-btn');
+            const logsContainer = document.getElementById('logs-container');
+            const giveawayLogsContainer = document.getElementById('giveaway-logs-container');
+            const listLogsContainer = document.getElementById('list-logs-container');
+            const systemLogsContainer = document.getElementById('system-logs-container');
+            const clearLogsBtn = document.getElementById('clear-logs-btn');
+            const exportLogsBtn = document.getElementById('export-logs-btn');
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const autoRemoveCheckbox = document.getElementById('auto-remove-checkbox');
+            const loginBtn = document.getElementById('login-btn');
+            
+            // Current winners list
+            let currentWinners = [];
+            let currentListName = null; // Track which saved list is currently loaded
+            let isLoggedIn = false; // Track login status
+            
+            // Logs data
+            let logs = JSON.parse(localStorage.getItem('giveawayLogs')) || [];
+            
+            // Initialize logs display
+            updateLogsDisplay();
+            
+            // Tab switching functionality
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.getAttribute('data-tab');
+                    
+                    // Update active tab button
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // Update active tab content
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // Login button functionality
+            loginBtn.addEventListener('click', showLoginModal);
+            
+            function showLoginModal() {
+            if (isLoggedIn) {
+                // If already logged in, show logout confirmation
+                showLogoutConfirmation();
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-container login-modal">
+                    <div class="modal-header">
+                        <div class="modal-title">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Admin Login
+                        </div>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <input 
+                            type="text" 
+                            id="username-input" 
+                            class="modal-input" 
+                            placeholder="Enter admin username"
+                            value="">
+                        <input 
+                            type="password" 
+                            id="password-input" 
+                            class="modal-input" 
+                            placeholder="Enter password"
+                            value="">
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-btn modal-btn-secondary cancel-btn">Cancel</button>
+                        <button class="modal-btn modal-btn-primary login-btn">Login</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Focus on username input (ĐÂY LÀ PHẦN ĐÃ SỬA)
+            setTimeout(() => {
+                const input = modal.querySelector('#username-input');
+                input.focus();
+            }, 100);
+            
+            // Close modal
+            modal.querySelector('.modal-close').addEventListener('click', () => {
+                modal.remove();
+            });
+            
+            modal.querySelector('.cancel-btn').addEventListener('click', () => {
+                modal.remove();
+            });
+            
+            modal.querySelector('.login-btn').addEventListener('click', () => {
+                const username = modal.querySelector('#username-input').value.trim();
+                const password = modal.querySelector('#password-input').value.trim();
+                
+                if (username === 'admin' && password === 'linhanh982410') {
+                    // Successful login
+                    isLoggedIn = true;
+                    enableEditing();
+                    modal.remove();
+                    loginBtn.innerHTML = '<i class="fas fa-sign-out-alt mr-2"></i> Logout';
+                    showNotification('Login successful! Editing enabled.', 'success');
+                    
+                    // Add log entry
+                    addLog('system', 'Admin logged in');
+                } else {
+                    showNotification('Invalid username or password', 'error');
+                }
+            });
+            
+            // Close modal when clicking outside
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+            
+            function showLogoutConfirmation() {
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+                modal.innerHTML = `
+                    <div class="modal-container confirmation-modal">
+                        <div class="modal-header">
+                            <div class="modal-title">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Logout
+                            </div>
+                            <button class="modal-close">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="confirmation-icon">
+                                <i class="fas fa-question-circle"></i>
+                            </div>
+                            <p class="confirmation-text">
+                                Are you sure you want to logout?
+                                <br>
+                                You will no longer be able to edit or modify anything.
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-btn modal-btn-secondary cancel-btn">Cancel</button>
+                            <button class="modal-btn modal-btn-primary logout-btn">Logout</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Close modal
+                modal.querySelector('.modal-close').addEventListener('click', () => {
+                    modal.remove();
+                });
+                
+                modal.querySelector('.cancel-btn').addEventListener('click', () => {
+                    modal.remove();
+                });
+                
+                modal.querySelector('.logout-btn').addEventListener('click', () => {
+                    isLoggedIn = false;
+                    disableEditing();
+                    modal.remove();
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Login';
+                    showNotification('Logged out successfully. Editing disabled.', 'info');
+                    
+                    // Add log entry
+                    addLog('system', 'Admin logged out');
+                });
+                
+                // Close modal when clicking outside
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
+                });
+            }
+            
+            function enableEditing() {
+            // Enable all form inputs
+            document.querySelectorAll('.disabled-input').forEach(el => {
+                el.disabled = false;
+            });
+            
+            // Enable all buttons
+            document.querySelectorAll('.disabled').forEach(el => {
+                el.classList.remove('disabled');
+            });
+            
+            // Enable logs buttons
+            clearLogsBtn.classList.remove('disabled');
+            exportLogsBtn.classList.remove('disabled');
+            
+            // Enable saved lists interaction
+            loadSavedLists();
+
+            // Switch to All Logs tab when logged in
+            document.querySelector('[data-tab="all-logs"]').classList.add('active');
+            document.querySelector('[data-tab="giveaway-logs"]').classList.remove('active');
+            document.getElementById('all-logs').classList.add('active');
+            document.getElementById('giveaway-logs').classList.remove('active');
+        }
+
+        function disableEditing() {
+            // Disable all form inputs
+            document.querySelectorAll('.disabled-input').forEach(el => {
+                el.disabled = true;
+            });
+            
+            // Disable all buttons except login
+            document.querySelectorAll('button:not(#login-btn)').forEach(el => {
+                el.classList.add('disabled');
+            });
+            
+            // Disable logs buttons
+            clearLogsBtn.classList.add('disabled');
+            exportLogsBtn.classList.add('disabled');
+            
+            // Clear any active selections
+            currentListName = null;
+
+            // Switch to Giveaways tab when logged out
+            document.querySelector('[data-tab="all-logs"]').classList.remove('active');
+            document.querySelector('[data-tab="giveaway-logs"]').classList.add('active');
+            document.getElementById('all-logs').classList.remove('active');
+            document.getElementById('giveaway-logs').classList.add('active');
+        }
+            
+            // Update sum count in real-time
+            namesInput.addEventListener('input', updateSumCount);
+            
+            // Load saved lists from localStorage
+            loadSavedLists();
+            
+            // Save current list
+            saveListBtn.addEventListener('click', showSaveListModal);
+            
+            // Clear current list
+            clearListBtn.addEventListener('click', showClearListConfirmation);
+            
+            // Begin the selection process
+            beginBtn.addEventListener('click', beginSelection);
+            
+            // Copy winners list
+            copyWinnersBtn.addEventListener('click', copyWinnersList);
+            
+            // Clear logs
+            clearLogsBtn.addEventListener('click', showClearLogsConfirmation);
+            
+            // Export logs
+            exportLogsBtn.addEventListener('click', exportLogs);
+            
+            function updateSumCount() {
+                const names = namesInput.value.split('\n').filter(name => name.trim() !== '');
+                sumCount.querySelector('.count').textContent = names.length;
+                
+                // Animate the count change
+                sumCount.classList.add('animate-pulse');
+                setTimeout(() => {
+                    sumCount.classList.remove('animate-pulse');
+                }, 300);
+            }
+            
+            function showSaveListModal() {
+                const names = namesInput.value.split('\n').filter(name => name.trim() !== '');
+                if (names.length === 0) {
+                    showNotification('Please enter at least one name before saving.', 'error');
+                    return;
+                }
+                
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+                modal.innerHTML = `
+                    <div class="modal-container">
+                        <div class="modal-header">
+                            <div class="modal-title">
+                                <i class="fas fa-save"></i>
+                                Save Participant List
+                            </div>
+                            <button class="modal-close">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="text" id="list-name-input" class="modal-input" placeholder="Enter a cute name for this list (e.g., 'Class 5A')">
+                            <div class="text-sm text-gray-500 mb-2">
+                                <i class="fas fa-info-circle mr-1"></i> 
+                                This list contains ${names.length} participant${names.length !== 1 ? 's' : ''}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-btn modal-btn-secondary cancel-btn">Cancel</button>
+                            <button class="modal-btn modal-btn-primary save-btn">Save List</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Focus on input
+                setTimeout(() => {
+                    const input = modal.querySelector('#list-name-input');
+                    input.focus();
+                }, 100);
+                
+                // Close modal
+                modal.querySelector('.modal-close').addEventListener('click', () => {
+                    modal.remove();
+                });
+                
+                modal.querySelector('.cancel-btn').addEventListener('click', () => {
+                    modal.remove();
+                });
+                
+                modal.querySelector('.save-btn').addEventListener('click', () => {
+                    const listName = modal.querySelector('#list-name-input').value.trim();
+                    if (!listName) {
+                        showNotification('Please enter a name for the list.', 'error');
+                        return;
+                    }
+                    
+                    saveCurrentList(listName, names);
+                    modal.remove();
+                });
+                
+                // Close modal when clicking outside
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
+                });
+            }
+            
+            function saveCurrentList(listName, names) {
+                const savedLists = JSON.parse(localStorage.getItem('giveawayLists')) || {};
+                savedLists[listName] = names;
+                localStorage.setItem('giveawayLists', JSON.stringify(savedLists));
+                
+                // Add log entry
+                addLog('list', `Saved list "${listName}" with ${names.length} participants`);
+                
+                showNotification(`List "${listName}" saved successfully!`, 'success');
+                loadSavedLists();
+                
+                // Animate the save button
+                saveListBtn.classList.add('animate-bounce');
+                setTimeout(() => {
+                    saveListBtn.classList.remove('animate-bounce');
+                }, 1000);
+            }
+            
+            function loadSavedLists() {
+                savedListsContainer.innerHTML = '';
+                const savedLists = JSON.parse(localStorage.getItem('giveawayLists')) || {};
+                
+                for (const [name, list] of Object.entries(savedLists)) {
+                    const listElement = document.createElement('div');
+                    listElement.className = `saved-list flex items-center bg-white/80 hover:bg-white px-4 py-2 cursor-pointer border border-purple/30 ${isLoggedIn ? '' : 'pointer-events-none opacity-75'}`;
+                    
+                    const icon = document.createElement('div');
+                    icon.className = 'w-6 h-6 rounded-full bg-purple/20 flex items-center justify-center mr-2';
+                    icon.innerHTML = '<i class="fas fa-list text-purple text-xs"></i>';
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'text-sm font-bold text-gray-700 mr-2 truncate max-w-xs';
+                    nameSpan.textContent = name;
+                    
+                    const countSpan = document.createElement('span');
+                    countSpan.className = 'text-xs bg-purple text-white rounded-full px-2 py-1 ml-auto';
+                    countSpan.textContent = list.length;
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = `ml-2 text-gray-400 hover:text-coral transition-colors ${isLoggedIn ? '' : 'hidden'}`;
+                    deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        showDeleteListConfirmation(name);
+                    });
+                    
+                    listElement.appendChild(icon);
+                    listElement.appendChild(nameSpan);
+                    listElement.appendChild(countSpan);
+                    if (isLoggedIn) {
+                        listElement.appendChild(deleteBtn);
+                    }
+                    
+                    listElement.addEventListener('click', () => {
+                        if (!isLoggedIn) return;
+                        
+                        namesInput.value = list.join('\n');
+                        updateSumCount();
+                        currentListName = name; // Track which list is currently loaded
+
+                        // Remove active class from all lists
+                        document.querySelectorAll('.saved-list').forEach(el => el.classList.remove('active-list'));
+
+                        // Add active class to selected list
+                        listElement.classList.add('active-list');
+
+                        // Add a cute animation when loading a list
+                        listElement.classList.add('bg-purple/10');
+                        setTimeout(() => {
+                            listElement.classList.remove('bg-purple/10');
+                        }, 1000);
+                    });
+                    
+                    savedListsContainer.appendChild(listElement);
+                }
+            }
+            
+            function removeWinnersFromSavedList(listName, winners) {
+                const savedLists = JSON.parse(localStorage.getItem('giveawayLists')) || {};
+                
+                if (savedLists[listName]) {
+                    // Remove winners from the list
+                    const updatedList = savedLists[listName].filter(name => !winners.includes(name));
+                    savedLists[listName] = updatedList;
+                    
+                    // Save back to localStorage
+                    localStorage.setItem('giveawayLists', JSON.stringify(savedLists));
+                    
+                    // Update the current input if this list is loaded
+                    if (currentListName === listName) {
+                        namesInput.value = updatedList.join('\n');
+                        updateSumCount();
+                    }
+                    
+                    // Reload saved lists display
+                    loadSavedLists();
+                    
+                    // Add log entry
+                    addLog('list', `Removed ${winners.length} winner${winners.length > 1 ? 's' : ''} from list "${listName}"`);
+                    
+                    return true;
+                }
+                
+                return false;
+            }
+            
+            function showDeleteListConfirmation(name) {
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+                modal.innerHTML = `
+                    <div class="modal-container confirmation-modal">
+                        <div class="modal-header">
+                            <div class="modal-title">
+                                <i class="fas fa-trash-alt"></i>
+                                Delete List
+                            </div>
+                            <button class="modal-close">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="confirmation-icon">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <p class="confirmation-text">
+                                Are you sure you want to delete the list <strong>"${name}"</strong>?
+                                <br>
+                                This action cannot be undone.
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-btn modal-btn-secondary cancel-btn">Cancel</button>
+                            <button class="modal-btn modal-btn-primary delete-btn">Delete</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Close modal
+                modal.querySelector('.modal-close').addEventListener('click', () => {
+                    modal.remove();
+                });
+                
+                modal.querySelector('.cancel-btn').addEventListener('click', () => {
+                    modal.remove();
+                });
+                
+                modal.querySelector('.delete-btn').addEventListener('click', () => {
+                    deleteSavedList(name);
+                    modal.remove();
+                });
+                
+                // Close modal when clicking outside
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
+                });
+            }
+            
+            function deleteSavedList(name) {
+                const savedLists = JSON.parse(localStorage.getItem('giveawayLists')) || {};
+                delete savedLists[name];
+                localStorage.setItem('giveawayLists', JSON.stringify(savedLists));
+                
+                // Add log entry
+                addLog('list', `Deleted list "${name}"`);
+                
+                loadSavedLists();
+                showNotification(`List "${name}" deleted.`, 'info');
+                
+                // Clear current list name if it was the deleted one
+                if (currentListName === name) {
+                    currentListName = null;
+                }
+            }
+            
+            function showClearListConfirmation() {
+                if (namesInput.value.trim() === '') {
+                    showNotification('The list is already empty!', 'info');
+                    return;
+                }
+                
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+                modal.innerHTML = `
+                    <div class="modal-container confirmation-modal">
+                        <div class="modal-header">
+                            <div class="modal-title">
+                                <i class="fas fa-trash-alt"></i>
+                                Clear List
+                            </div>
+                            <button class="modal-close">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="confirmation-icon">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <p class="confirmation-text">
+                                Are you sure you want to clear the current participant list?
+                                <br>
+                                This will remove all names from the input field.
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-btn modal-btn-secondary cancel-btn">Cancel</button>
+                            <button class="modal-btn modal-btn-primary clear-btn">Clear</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Close modal
+                modal.querySelector('.modal-close').addEventListener('click', () => {
+                    modal.remove();
+                });
+                
+                modal.querySelector('.cancel-btn').addEventListener('click', () => {
+                    modal.remove();
+                });
+                
+                modal.querySelector('.clear-btn').addEventListener('click', () => {
+                    clearCurrentList();
+                    modal.remove();
+                });
+                
+                // Close modal when clicking outside
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
+                });
+            }
+            
+            function clearCurrentList() {
+                namesInput.value = '';
+                updateSumCount();
+                currentListName = null; // Clear the current list reference
+                
+                // Remove active class from all lists
+                document.querySelectorAll('.saved-list').forEach(el => el.classList.remove('active-list'));
+                
+                // Add log entry
+                addLog('list', 'Cleared current participant list');
+                
+                // Add a cute animation
+                clearListBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Cleared!';
+                setTimeout(() => {
+                    clearListBtn.innerHTML = '<i class="fas fa-trash-alt mr-2"></i>Clear';
+                }, 1000);
+            }
+            
+            function beginSelection() {
+                const names = namesInput.value.split('\n').filter(name => name.trim() !== '');
+                if (names.length === 0) {
+                    showNotification('Please enter at least one name before starting.', 'error');
+                    return;
+                }
+                
+                const amount = parseInt(amountInput.value) || 1;
+                if (amount > names.length) {
+                    showNotification(`You can't pick ${amount} winners from only ${names.length} participants.`, 'error');
+                    return;
+                }
+                
+                const duration = (parseInt(timeInput.value) || 3) * 1000; // Convert to milliseconds
+                
+                // Show modal to get event name
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+                modal.innerHTML = `
+                    <div class="modal-container">
+                        <div class="modal-header">
+                            <div class="modal-title">
+                                <i class="fas fa-gift"></i>
+                                Giveaway Event
+                            </div>
+                            <button class="modal-close">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="text" id="event-name-input" class="modal-input" placeholder="Enter a name for this giveaway (e.g., 'Birthday Raffle')">
+                            <div class="text-sm text-gray-500 mb-2">
+                                <i class="fas fa-info-circle mr-1"></i> 
+                                You're about to pick ${amount} winner${amount !== 1 ? 's' : ''} from ${names.length} participant${names.length !== 1 ? 's' : ''}
+                            </div>
+                            ${currentListName ? `
+                            <div class="text-sm text-gray-500 flex items-center">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Winners will ${autoRemoveCheckbox.checked ? '' : 'not'} be automatically removed from "${currentListName}"
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-btn modal-btn-secondary cancel-btn">Cancel</button>
+                            <button class="modal-btn modal-btn-primary start-btn">Start Selection</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Focus on input
+                setTimeout(() => {
+                    const input = modal.querySelector('#event-name-input');
+                    input.focus();
+                }, 100);
+                
+                // Close modal
+                modal.querySelector('.modal-close').addEventListener('click', () => {
+                    modal.remove();
+                });
+                
+                modal.querySelector('.cancel-btn').addEventListener('click', () => {
+                    modal.remove();
+                });
+                
+                modal.querySelector('.start-btn').addEventListener('click', () => {
+                    const eventName = modal.querySelector('#event-name-input').value.trim() || 'Unnamed Event';
+                    modal.remove();
+                    startSelectionProcess(names, amount, duration, eventName);
+                });
+                
+                // Close modal when clicking outside
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
+                });
+            }
+            
+            function startSelectionProcess(names, amount, duration, eventName) {
+                // Disable the button during selection
+                beginBtn.disabled = true;
+                beginBtn.innerHTML = '<i class="fas fa-spinner spin-animation mr-3"></i>Picking...';
+                beginBtn.classList.remove('from-coral', 'to-pink');
+                beginBtn.classList.add('bg-purple');
+                
+                // Hide copy section during selection
+                copySection.classList.add('hidden');
+                
+                // Show loading state with cute animation
+                resultDisplay.innerHTML = `
+                    <div class="text-center w-full">
+                        <div class="w-20 h-20 bg-purple/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-spinner spin-animation text-3xl text-purple"></i>
+                        </div>
+                        <p class="text-gray-600 font-medium">Picking ${amount > 1 ? 'winners' : 'a winner'}...</p>
+                    </div>
+                `;
+                
+                // Start the selection animation
+                const startTime = Date.now();
+                const endTime = startTime + duration;
+                
+                const animationInterval = setInterval(() => {
+                    const remainingTime = endTime - Date.now();
+                    if (remainingTime <= 0) {
+                        clearInterval(animationInterval);
+                        displayWinners(names, amount, eventName);
+                        return;
+                    }
+                    
+                    // Show random names during animation
+                    const randomNames = [];
+                    for (let i = 0; i < amount; i++) {
+                        const randomIndex = Math.floor(Math.random() * names.length);
+                        randomNames.push(names[randomIndex]);
+                    }
+                    
+                    resultDisplay.innerHTML = `
+                        <div class="text-center w-full">
+                            <div class="w-16 h-16 bg-purple/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-random text-xl text-purple"></i>
+                            </div>
+                            ${randomNames.map(name => `
+                                <div class="text-xl font-bold text-gray-700 py-2 px-4 bg-white/70 rounded-lg m-1 animate-pulse">
+                                    ${name}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    
+                }, 100);
+            }
+            
+            function displayWinners(names, amount, eventName) {
+                // Reset button state
+                beginBtn.disabled = false;
+                beginBtn.innerHTML = '<i class="fas fa-play mr-3"></i>Begin Selection';
+                beginBtn.classList.add('from-coral', 'to-pink');
+                beginBtn.classList.remove('bg-purple');
+                
+                // Select unique winners
+                currentWinners = [];
+                const namePool = [...names];
+                
+                for (let i = 0; i < Math.min(amount, namePool.length); i++) {
+                    const randomIndex = Math.floor(Math.random() * namePool.length);
+                    currentWinners.push(namePool.splice(randomIndex, 1)[0]);
+                }
+                
+                // Add log entry
+                addLog('giveaway', `Selected ${currentWinners.length} winner${currentWinners.length > 1 ? 's' : ''} for "${eventName}": ${currentWinners.join(', ')}`);
+                
+                // Auto-remove winners from saved list if enabled and a list is loaded
+                if (autoRemoveCheckbox.checked && currentListName) {
+                    const success = removeWinnersFromSavedList(currentListName, currentWinners);
+                    if (success) {
+                        addLog('list', `Automatically removed winners from "${currentListName}"`);
+                        showNotification(`Winners removed from "${currentListName}"`, 'success');
+                    }
+                }
+                
+                // Display winners with celebration effect
+                resultDisplay.innerHTML = `
+                    <div class="text-center relative overflow-hidden w-full">
+                        <div class="absolute inset-0 flex justify-center">
+                            ${Array.from({length: 20}).map((_, i) => `
+                                <div class="confetti" style="
+                                    left: ${Math.random() * 100}%;
+                                    animation: fall ${Math.random() * 2 + 1}s ease-in forwards ${Math.random() * 0.5}s;
+                                    background-color: hsl(${Math.random() * 360}, 100%, 75%);
+                                    width: ${Math.random() * 8 + 4}px;
+                                    height: ${Math.random() * 8 + 4}px;
+                                    border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+                                "></div>
+                            `).join('')}
+                        </div>
+                        <h3 class="text-xl font-bold text-purple mb-4 relative z-10">
+                            ${currentWinners.length > 1 ? '🎊 Winners 🎊' : '🎉 Winner 🎉'}
+                        </h3>
+                        <div class="winners-container">
+                            ${currentWinners.map(winner => `
+                                <div class="winner-item text-xl font-bold text-gray-800 py-3 px-6 rounded-lg relative z-10 transform transition-all hover:scale-[1.02]">
+                                    ${winner}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <p class="text-sm text-gray-500 mt-4 relative z-10">${currentWinners.length} ${currentWinners.length > 1 ? 'winners' : 'winner'} selected</p>
+                        <p class="text-xs text-gray-400 mt-2 relative z-10">Event: ${eventName}</p>
+                    </div>
+                `;
+                
+                // Show copy section
+                copySection.classList.remove('hidden');
+                
+                // Add CSS for confetti animation
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    @keyframes fall {
+                        0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+                        100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                // Trigger confetti animation
+                setTimeout(() => {
+                    const confettiElements = document.querySelectorAll('.confetti');
+                    confettiElements.forEach(el => {
+                        el.style.opacity = '1';
+                    });
+                }, 100);
+            }
+            
+            function copyWinnersList() {
+                if (currentWinners.length === 0) {
+                    showNotification('No winners to copy!', 'error');
+                    return;
+                }
+                
+                const winnersText = currentWinners.join('\n');
+                navigator.clipboard.writeText(winnersText)
+                    .then(() => {
+                        showNotification('Winners list copied to clipboard!', 'success');
+                        
+                        // Add log entry
+                        addLog('system', 'Copied winners list to clipboard');
+                        
+                        // Animate the copy button
+                        copyWinnersBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Copied!';
+                        setTimeout(() => {
+                            copyWinnersBtn.innerHTML = '<i class="fas fa-copy mr-2"></i>Copy Winners List';
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        showNotification('Failed to copy winners list.', 'error');
+                        console.error('Failed to copy text: ', err);
+                    });
+            }
+            
+            function addLog(type, message) {
+                const timestamp = new Date().toISOString();
+                const logEntry = {
+                    id: Date.now(),
+                    type,
+                    message,
+                    timestamp,
+                    displayTime: new Date().toLocaleString()
+                };
+                
+                logs.unshift(logEntry); // Add to beginning of array
+                localStorage.setItem('giveawayLogs', JSON.stringify(logs));
+                updateLogsDisplay();
+            }
+            
+            function updateLogsDisplay() {
+                // Clear all containers first
+                logsContainer.innerHTML = '';
+                giveawayLogsContainer.innerHTML = '';
+                listLogsContainer.innerHTML = '';
+                systemLogsContainer.innerHTML = '';
+                
+                if (logs.length === 0) {
+                    // Show empty state for all containers
+                    const emptyStates = {
+                        'all-logs': logsContainer,
+                        'giveaway-logs': giveawayLogsContainer,
+                        'list-logs': listLogsContainer,
+                        'system-logs': systemLogsContainer
+                    };
+                    
+                    for (const [tabId, container] of Object.entries(emptyStates)) {
+                        const icon = tabId === 'all-logs' ? 'history' : 
+                                     tabId === 'giveaway-logs' ? 'gift' : 
+                                     tabId === 'list-logs' ? 'users' : 'cog';
+                                     
+                        const message = tabId === 'all-logs' ? 'No logs yet. Your giveaway events will appear here.' : 
+                                       tabId === 'giveaway-logs' ? 'No giveaway logs yet.' : 
+                                       tabId === 'list-logs' ? 'No list logs yet.' : 'No system logs yet.';
+                        
+                        container.innerHTML = `
+                            <div class="text-center text-gray-500 py-8">
+                                <i class="fas fa-${icon} text-4xl mb-4 text-teal/50"></i>
+                                <p>${message}</p>
+                            </div>
+                        `;
+                    }
+                    
+                    return;
+                }
+                
+                // Populate all logs container
+                logs.forEach(log => {
+                    const logElement = createLogElement(log);
+                    logsContainer.appendChild(logElement);
+                });
+                
+                // Populate filtered containers
+                const giveawayLogs = logs.filter(log => log.type === 'giveaway');
+                const listLogs = logs.filter(log => log.type === 'list');
+                const systemLogs = logs.filter(log => log.type === 'system');
+                
+                giveawayLogs.forEach(log => {
+                    const logElement = createLogElement(log);
+                    giveawayLogsContainer.appendChild(logElement);
+                });
+                
+                listLogs.forEach(log => {
+                    const logElement = createLogElement(log);
+                    listLogsContainer.appendChild(logElement);
+                });
+                
+                systemLogs.forEach(log => {
+                    const logElement = createLogElement(log);
+                    systemLogsContainer.appendChild(logElement);
+                });
+                
+                // Show empty states if no logs in filtered containers
+                if (giveawayLogs.length === 0) {
+                    giveawayLogsContainer.innerHTML = `
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-gift text-4xl mb-4 text-teal/50"></i>
+                            <p>No giveaway logs yet.</p>
+                        </div>
+                    `;
+                }
+                
+                if (listLogs.length === 0) {
+                    listLogsContainer.innerHTML = `
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-users text-4xl mb-4 text-teal/50"></i>
+                            <p>No list logs yet.</p>
+                        </div>
+                    `;
+                }
+                
+                if (systemLogs.length === 0) {
+                    systemLogsContainer.innerHTML = `
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-cog text-4xl mb-4 text-teal/50"></i>
+                            <p>No system logs yet.</p>
+                        </div>
+                    `;
+                }
+            }
+            
+            function createLogElement(log) {
+                const logElement = document.createElement('div');
+                logElement.className = 'log-item p-4 rounded-lg mb-2';
+                
+                const iconMap = {
+                    'giveaway': 'gift',
+                    'list': 'users',
+                    'system': 'cog'
+                };
+                
+                const colorMap = {
+                    'giveaway': 'text-purple',
+                    'list': 'text-pink',
+                    'system': 'text-sky'
+                };
+                
+                logElement.innerHTML = `
+                    <div class="flex items-start">
+                        <div class="w-8 h-8 rounded-full bg-teal/10 flex items-center justify-center mr-3 mt-1">
+                            <i class="fas fa-${iconMap[log.type]} ${colorMap[log.type]}"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start">
+                                <p class="text-sm font-medium text-gray-700">${log.message}</p>
+                                <span class="text-xs text-gray-500 ml-2 whitespace-nowrap">${log.displayTime}</span>
+                            </div>
+                            <div class="flex justify-between items-center mt-1">
+                                <span class="text-xs px-2 py-1 rounded-full ${colorMap[log.type]}/10 ${colorMap[log.type]}">
+                                    ${log.type.charAt(0).toUpperCase() + log.type.slice(1)}
+                                </span>
+                                <button class="text-xs text-gray-400 hover:text-coral delete-log ${isLoggedIn ? '' : 'hidden'}" data-id="${log.id}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Add delete functionality
+                if (isLoggedIn) {
+                    logElement.querySelector('.delete-log').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteLog(log.id);
+                    });
+                }
+                
+                return logElement;
+            }
+            
+            function deleteLog(id) {
+                logs = logs.filter(log => log.id !== id);
+                localStorage.setItem('giveawayLogs', JSON.stringify(logs));
+                updateLogsDisplay();
+                showNotification('Log entry deleted.', 'info');
+            }
+            
+            function showClearLogsConfirmation() {
+                if (logs.length === 0) {
+                    showNotification('No logs to clear!', 'info');
+                    return;
+                }
+                
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+                modal.innerHTML = `
+                    <div class="modal-container confirmation-modal">
+                        <div class="modal-header">
+                            <div class="modal-title">
+                                <i class="fas fa-trash-alt"></i>
+                                Clear All Logs
+                            </div>
+                            <button class="modal-close">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="confirmation-icon">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <p class="confirmation-text">
+                                Are you sure you want to clear all logs?
+                                <br>
+                                This will permanently delete ${logs.length} log entries.
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-btn modal-btn-secondary cancel-btn">Cancel</button>
+                            <button class="modal-btn modal-btn-primary clear-btn">Clear All</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Close modal
+                modal.querySelector('.modal-close').addEventListener('click', () => {
+                    modal.remove();
+                });
+                
+                modal.querySelector('.cancel-btn').addEventListener('click', () => {
+                    modal.remove();
+                });
+                
+                modal.querySelector('.clear-btn').addEventListener('click', () => {
+                    clearLogs();
+                    modal.remove();
+                });
+                
+                // Close modal when clicking outside
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
+                });
+            }
+            
+            function clearLogs() {
+                logs = [];
+                localStorage.setItem('giveawayLogs', JSON.stringify(logs));
+                updateLogsDisplay();
+                showNotification('All logs cleared.', 'info');
+                
+                // Add log entry for clearing logs
+                addLog('system', 'Cleared all logs');
+            }
+            
+            function exportLogs() {
+                if (logs.length === 0) {
+                    showNotification('No logs to export!', 'info');
+                    return;
+                }
+                
+                const dataStr = JSON.stringify(logs, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `giveaway-logs-${new Date().toISOString().slice(0,10)}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+                
+                // Add log entry
+                addLog('system', 'Exported all logs');
+                
+                showNotification('Logs exported successfully!', 'success');
+            }
+            
+            function showNotification(message, type) {
+                const notification = document.createElement('div');
+                notification.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white font-medium transform transition-all ${
+                    type === 'error' ? 'bg-coral' : 
+                    type === 'success' ? 'bg-mint' : 'bg-sky'
+                } animate-bounce-in`;
+                
+                notification.innerHTML = `
+                    <i class="fas ${
+                        type === 'error' ? 'fa-exclamation-circle' : 
+                        type === 'success' ? 'fa-check-circle' : 'fa-info-circle'
+                    } mr-2"></i> ${message}
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.classList.remove('animate-bounce-in');
+                    notification.classList.add('animate-fade-out');
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 300);
+                }, 3000);
+            }
+            
+            // Initial sum count update
+            updateSumCount();
+            
+            // Add some cute hover effects
+            document.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('mouseenter', () => {
+                    if (!btn.classList.contains('disabled')) {
+                        btn.classList.add('transition', 'transform', 'hover:scale-105');
+                    }
+                });
+                btn.addEventListener('mouseleave', () => {
+                    btn.classList.remove('transition', 'transform', 'hover:scale-105');
+                });
+            });
+            
+            // Initialize in view-only mode
+            disableEditing();
+        });
+    </script>
+<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - 🧬 <a href="https://enzostvs-deepsite.hf.space?remix=meiilina99/infinitya-guild-giveawaypickers-log" style="color: #fff;text-decoration: underline;" target="_blank" >Remix</a></p></body>
+</html>
